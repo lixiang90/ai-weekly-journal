@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import fs from 'fs/promises';
 import path from 'path';
@@ -22,20 +22,14 @@ async function writeArticles(articles: Article[]) {
   await fs.writeFile(ARTICLES_FILE, JSON.stringify(articles, null, 2));
 }
 
-type RouteContext = {
-  params: {
-    id: string;
-  };
-};
-
 export async function PATCH(
-  request: Request,
-  { params }: RouteContext
-) {
+  request: NextRequest,
+  { params }: { params: { id: string } }
+): Promise<NextResponse> {
   const session = await getServerSession(authOptions);
   
   if (!session || session.user?.role !== 'admin') {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { status } = await request.json();
@@ -43,7 +37,7 @@ export async function PATCH(
   
   const articleIndex = articles.findIndex((a: Article) => a.id === params.id);
   if (articleIndex === -1) {
-    return new NextResponse('Article not found', { status: 404 });
+    return NextResponse.json({ error: 'Article not found' }, { status: 404 });
   }
 
   articles[articleIndex].status = status;
