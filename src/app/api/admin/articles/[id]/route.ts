@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import fs from 'fs/promises';
 import path from 'path';
 import { Article } from '@/types/article';
+import { authOptions } from '@/lib/auth';
 
 const ARTICLES_FILE = path.join(process.cwd(), 'data', 'articles.json');
 
@@ -23,9 +24,9 @@ async function writeArticles(articles: Article[]) {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   
   if (!session || session.user?.role !== 'admin') {
     return new NextResponse('Unauthorized', { status: 401 });
@@ -34,7 +35,7 @@ export async function PATCH(
   const { status } = await request.json();
   const articles = await readArticles();
   
-  const articleIndex = articles.findIndex((a: Article) => a.id === params.id);
+  const articleIndex = articles.findIndex((a: Article) => a.id === context.params.id);
   if (articleIndex === -1) {
     return new NextResponse('Article not found', { status: 404 });
   }
