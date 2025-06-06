@@ -11,14 +11,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Article } from '@/types/article';
 
-// type Props = {
-//   params: {
-//     id: string;
-//     slug: string;
-//   };
-//   searchParams?: { [key: string]: string | string[] | undefined };
-// };
-
+// ✅ 正确方式：内联类型定义
 export default async function ArticlePage({
   params,
 }: {
@@ -27,7 +20,7 @@ export default async function ArticlePage({
   const id = parseInt(params.id);
   const slug = params.slug;
 
-  // 确保 id 是有效的数字
+  // ⛔️ 非数字，直接 404
   if (isNaN(id)) {
     notFound();
   }
@@ -37,7 +30,7 @@ export default async function ArticlePage({
 
   let article: Article | undefined;
 
-  // 如果是管理员，先从 articles.json 中查找
+  // ✅ 管理员优先从 articles.json 中查找
   if (isAdmin) {
     try {
       const articlesPath = path.join(process.cwd(), 'data', 'articles.json');
@@ -49,14 +42,18 @@ export default async function ArticlePage({
     }
   }
 
-  // 如果文章未找到或不是管理员，尝试从子刊文件中查找
+  // ✅ 没找到再从对应子刊查找
   if (!article) {
     const filePath = path.join(process.cwd(), "data", `subjournal_${id}.json`);
     try {
       const file = await fs.readFile(filePath, "utf-8");
       const parsedData = JSON.parse(file);
       
-      if (parsedData && typeof parsedData === "object" && Array.isArray(parsedData.articles)) {
+      if (
+        parsedData &&
+        typeof parsedData === "object" &&
+        Array.isArray(parsedData.articles)
+      ) {
         article = parsedData.articles.find((a: Article) => a.id === slug);
       }
     } catch (error) {
@@ -69,7 +66,7 @@ export default async function ArticlePage({
     notFound();
   }
 
-  // 如果不是管理员，且文章未通过审核，则返回 404
+  // ✅ 非管理员不能访问未审核文章
   if (!isAdmin && article.status !== 'approved') {
     notFound();
   }
@@ -94,7 +91,10 @@ export default async function ArticlePage({
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
         <div className="text-gray-600 mb-6">
           <p>作者：{article.author}</p>
-          <p>发布时间：{new Date(article.publishedAt || article.createdAt).toLocaleString()}</p>
+          <p>
+            发布时间：
+            {new Date(article.publishedAt || article.createdAt).toLocaleString()}
+          </p>
         </div>
 
         {article.prompt && (
@@ -103,7 +103,9 @@ export default async function ArticlePage({
               查看使用的 Prompt
             </summary>
             <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-              <p className="text-gray-700 whitespace-pre-wrap">{article.prompt}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {article.prompt}
+              </p>
             </div>
           </details>
         )}
@@ -120,3 +122,4 @@ export default async function ArticlePage({
     </main>
   );
 }
+
