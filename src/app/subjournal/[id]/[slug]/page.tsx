@@ -9,23 +9,7 @@ import "katex/dist/katex.min.css";
 import { notFound } from "next/navigation";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-
-interface Article {
-  id: string;
-  title: string;
-  author: string;
-  content: string;
-  prompt?: string;
-  journalId: number;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-  updatedAt?: string;
-  publishedAt?: string;
-}
-
-interface Journal {
-  articles: Article[];
-}
+import { Article, Journal } from '@/types/article';
 
 export default async function ArticlePage({
   params,
