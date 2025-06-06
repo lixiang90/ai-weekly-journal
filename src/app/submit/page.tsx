@@ -40,7 +40,7 @@ export default function SubmitPage() {
                 e.preventDefault();
                 const form = e.currentTarget as HTMLFormElement;
                 const data = {
-                  title: (form.title as HTMLInputElement).value,
+                  title: (form.title as unknown as HTMLInputElement).value,
                   author: (form.author as HTMLInputElement).value,
                   content: (form.content as HTMLTextAreaElement).value,
                   prompt: (form.prompt as HTMLTextAreaElement).value,
