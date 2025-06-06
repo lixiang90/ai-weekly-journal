@@ -22,9 +22,15 @@ async function writeArticles(articles: Article[]) {
   await fs.writeFile(ARTICLES_FILE, JSON.stringify(articles, null, 2));
 }
 
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
 export async function PATCH(
   request: Request,
-  context: { params: { id: string } }
+  { params }: RouteContext
 ) {
   const session = await getServerSession(authOptions);
   
@@ -35,7 +41,7 @@ export async function PATCH(
   const { status } = await request.json();
   const articles = await readArticles();
   
-  const articleIndex = articles.findIndex((a: Article) => a.id === context.params.id);
+  const articleIndex = articles.findIndex((a: Article) => a.id === params.id);
   if (articleIndex === -1) {
     return new NextResponse('Article not found', { status: 404 });
   }
