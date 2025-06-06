@@ -11,13 +11,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Article } from '@/types/article';
 
-export default async function ArticlePage({
-  params
-}: {
-  params: { id: string; slug: string }
+// 关键修改：使用动态路由类型声明
+export default async function ArticlePage({ params }: {
+  params: Promise<{ id: string; slug: string }>
 }) {
-  const id = parseInt(params.id);
-  const slug = params.slug;
+  // 解析 Promise 获取参数
+  const resolvedParams = await params;
+  const id = parseInt(resolvedParams.id);
+  const slug = resolvedParams.slug;
 
   if (isNaN(id)) {
     notFound();
