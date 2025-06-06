@@ -9,7 +9,7 @@ import "katex/dist/katex.min.css";
 import { notFound } from "next/navigation";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { Article, Journal } from '@/types/article';
+import { Article} from '@/types/article';
 
 interface PageProps {
   params: {
