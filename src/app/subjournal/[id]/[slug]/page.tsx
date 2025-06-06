@@ -9,17 +9,19 @@ import "katex/dist/katex.min.css";
 import { notFound } from "next/navigation";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { Article} from '@/types/article';
+import { Article } from '@/types/article';
 
-interface PageProps {
+type Props = {
   params: {
     id: string;
     slug: string;
   };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+  _searchParams: Record<string, string | string[] | undefined>;
+};
 
-export default async function ArticlePage({ params }: PageProps) {
+export default async function ArticlePage({
+  params,
+}: Props) {
   const id = parseInt(params.id);
   const slug = params.slug;
 
