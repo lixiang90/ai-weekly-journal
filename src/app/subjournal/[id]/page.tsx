@@ -23,6 +23,9 @@ interface Journal {
   articles: Article[];
 }
 
+// 关键修改：添加动态路由配置
+export const dynamic = 'auto';
+
 export default async function SubjournalPage({
   params,
   searchParams
