@@ -11,17 +11,19 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Article } from '@/types/article';
 
-type Props = {
-  params: {
-    id: string;
-    slug: string;
-  };
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
+// type Props = {
+//   params: {
+//     id: string;
+//     slug: string;
+//   };
+//   searchParams?: { [key: string]: string | string[] | undefined };
+// };
 
 export default async function ArticlePage({
   params,
-}: Props) {
+}: {
+  params: { id: string; slug: string };
+}) {
   const id = parseInt(params.id);
   const slug = params.slug;
 
