@@ -30,10 +30,11 @@ export default async function SubjournalPage({
   params,
   searchParams
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
   searchParams: { page?: string };
 }) {
-  const id = parseInt(params.id);
+  const resolvedParams = await params;
+  const id = parseInt(resolvedParams.id);
   
   // 确保 id 是有效的数字
   if (isNaN(id)) {
