@@ -31,10 +31,11 @@ export default async function SubjournalPage({
   searchParams
 }: {
   params: Promise<{ id: string }>;
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }) {
   const resolvedParams = await params;
   const id = parseInt(resolvedParams.id);
+  const resolvedSearchParams = await searchParams;
   
   // 确保 id 是有效的数字
   if (isNaN(id)) {
@@ -62,7 +63,7 @@ export default async function SubjournalPage({
     notFound();
   }
 
-  const currentPage = parseInt(searchParams.page || '1');
+  const currentPage = parseInt(resolvedSearchParams.page || '1');
   const totalPages = Math.max(1, Math.ceil(journal.articles.length / POSTS_PER_PAGE));
 
   if (currentPage < 1 || currentPage > totalPages) {
