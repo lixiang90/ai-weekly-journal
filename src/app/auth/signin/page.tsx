@@ -4,9 +4,10 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react'; // 导入 Suspense
 
-export default function SignIn() {
-  // 使用 useSearchParams 钩子获取查询参数
+// 将主要内容提取到单独组件中
+function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -49,5 +50,13 @@ export default function SignIn() {
         </Card>
       </div>
     </main>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">加载中...</div>}>
+      <SignInContent />
+    </Suspense>
   );
 }
