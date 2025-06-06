@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
 
 export default function SignIn() {
+  // 使用 useSearchParams 钩子获取查询参数
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -49,4 +50,4 @@ export default function SignIn() {
       </div>
     </main>
   );
-} 
+}
