@@ -16,7 +16,7 @@ type Props = {
     id: string;
     slug: string;
   };
-  _searchParams: Record<string, string | string[] | undefined>;
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
 export default async function ArticlePage({
