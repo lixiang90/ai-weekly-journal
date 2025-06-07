@@ -1,7 +1,6 @@
-import fs from 'fs/promises';
-import path from 'path';
 import Link from 'next/link';
 import { notFound } from "next/navigation";
+import { supabase } from '@/lib/supabase';
 
 const subjournals = ["文史哲", "社科", "理科", "数学"];
 const POSTS_PER_PAGE = 5;
@@ -12,19 +11,17 @@ interface Article {
   author: string;
   content: string;
   prompt?: string;
-  journalId: number;
+  journal_id: number;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-  updatedAt?: string;
-  publishedAt?: string;
-}
-
-interface Journal {
-  articles: Article[];
+  slug: string;
+  created_at: string;
+  updated_at?: string;
+  published_at?: string;
 }
 
 // 关键修改：添加动态路由配置
-export const dynamic = 'auto';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function SubjournalPage({
   params,
@@ -44,35 +41,50 @@ export default async function SubjournalPage({
 
   const journalTitle = subjournals[id] || '未知子刊';
 
-  const filePath = path.join(process.cwd(), 'data', `subjournal_${id}.json`);
-  let journal: Journal = { articles: [] };
+  // 从Supabase获取子刊信息
+  const { data: journal, error: journalError } = await supabase
+    .from('journals')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  try {
-    const file = await fs.readFile(filePath, 'utf-8');
-    const parsedData = JSON.parse(file);
-    
-    // 验证数据格式
-    if (parsedData && typeof parsedData === 'object' && Array.isArray(parsedData.articles)) {
-      journal = parsedData;
-    } else {
-      console.error('Invalid journal data format:', parsedData);
-      notFound();
-    }
-  } catch (error) {
-    console.error('Error reading journal file:', error);
+  if (journalError || !journal) {
+    console.error('获取子刊信息失败:', journalError);
+    notFound();
+  }
+
+  // 获取文章总数
+  const { count: totalArticles, error: countError } = await supabase
+    .from('articles')
+    .select('*', { count: 'exact', head: true })
+    .eq('journal_id', id)
+    .eq('status', 'approved');
+
+  if (countError) {
+    console.error('获取文章数量失败:', countError);
     notFound();
   }
 
   const currentPage = parseInt(resolvedSearchParams.page || '1');
-  const totalPages = Math.max(1, Math.ceil(journal.articles.length / POSTS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil((totalArticles || 0) / POSTS_PER_PAGE));
 
   if (currentPage < 1 || currentPage > totalPages) {
     notFound();
   }
 
-  const paginatedPosts = journal.articles
-    .sort((a, b) => new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime())
-    .slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
+  // 获取分页文章
+  const { data: articles, error: articlesError } = await supabase
+    .from('articles')
+    .select('*')
+    .eq('journal_id', id)
+    .eq('status', 'approved')
+    .order('published_at', { ascending: false })
+    .range((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE - 1);
+
+  if (articlesError) {
+    console.error('获取文章列表失败:', articlesError);
+    notFound();
+  }
 
   return (
     <main className="p-6 max-w-4xl mx-auto">
@@ -84,22 +96,22 @@ export default async function SubjournalPage({
 
       <h1 className="text-3xl font-bold mb-4">{journalTitle} 子刊</h1>
 
-      {journal.articles.length === 0 ? (
+      {!articles || articles.length === 0 ? (
         <p className="text-gray-500">暂无投稿</p>
       ) : (
         <>
           <div className="space-y-6">
-            {paginatedPosts.map((article) => (
+            {articles.map((article) => (
               <article key={article.id} className="bg-white rounded-xl shadow-sm p-6">
                 <Link
-                  href={`/subjournal/${id}/${article.id}`}
+                  href={`/subjournal/${id}/${article.slug}`}
                   className="block hover:opacity-80"
                 >
                   <h2 className="text-2xl font-bold mb-2">{article.title}</h2>
                 </Link>
                 <div className="text-gray-600 mb-4">
                   <p>作者：{article.author}</p>
-                  <p>发布时间：{new Date(article.publishedAt || article.createdAt).toLocaleString()}</p>
+                  <p>发布时间：{new Date(article.published_at || article.created_at).toLocaleString()}</p>
                 </div>
                 {article.prompt && (
                   <details className="mb-4">

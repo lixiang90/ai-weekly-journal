@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { supabaseAdmin } from '@/lib/supabase';
 
 function slugify(title: string) {
   return encodeURIComponent(title.trim().replace(/\s+/g, '-').slice(0, 100));
@@ -14,27 +13,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '缺少字段' }, { status: 400 });
   }
 
-  const post = {
+  const now = new Date().toISOString();
+  const slug = slugify(title + Date.now()); // 避免重名
+
+  // 准备文章数据
+  const articleData = {
+    id: crypto.randomUUID(), // 生成唯一ID
     title,
     author,
     content,
     prompt: prompt || '',
-    slug: slugify(title + Date.now()), // 避免重名
-    date: new Date().toISOString(),
+    journal_id: journalId,
+    status: 'approved', // 默认为已批准
+    slug,
+    created_at: now,
+    updated_at: now,
+    published_at: now
   };
 
-  const filePath = path.join(process.cwd(), 'data', `subjournal_${journalId}.json`);
-  let existing = [];
+  // 插入到Supabase
+  const { data, error } = await supabaseAdmin
+    .from('articles')
+    .insert(articleData)
+    .select();
 
-  try {
-    const file = await fs.readFile(filePath, 'utf-8');
-    existing = JSON.parse(file);
-  } catch {
-    existing = [];
+  if (error) {
+    console.error('保存文章失败:', error);
+    return NextResponse.json({ error: '保存失败' }, { status: 500 });
   }
 
-  existing.unshift(post); // 最新文章在前
-  await fs.writeFile(filePath, JSON.stringify(existing, null, 2), 'utf-8');
-
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, data });
 }

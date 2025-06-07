@@ -12,33 +12,35 @@ export default function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <nav className="sticky top-0 z-50 bg-white shadow-sm border-b px-6 py-3 flex items-center gap-6">
+    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b px-6 py-4 flex items-center gap-6 shadow-sm">
       <Link
         href="/"
-        className={`font-bold text-lg ${
-          pathname === "/" ? "text-blue-600" : "text-gray-800"
-        }`}
+        className={`font-bold text-xl ${
+          pathname === "/" ? "text-primary" : "text-foreground"
+        } hover:text-primary transition-colors`}
       >
         AI丛刊
       </Link>
-      {subjournals.map((name, index) => (
-        <Link
-          key={index}
-          href={`/subjournal/${index}`}
-          className={`text-sm ${
-            pathname === `/subjournal/${index}` ? "text-blue-600 font-medium" : "text-gray-600"
-          } hover:text-blue-500`}
-        >
-          {name}
-        </Link>
-      ))}
+      <div className="hidden md:flex items-center gap-6">
+        {subjournals.map((name, index) => (
+          <Link
+            key={index}
+            href={`/subjournal/${index}`}
+            className={`text-sm font-medium ${
+              pathname === `/subjournal/${index}` ? "text-primary" : "text-muted-foreground"
+            } hover:text-primary transition-colors`}
+          >
+            {name}
+          </Link>
+        ))}
+      </div>
       
       <div className="ml-auto flex items-center gap-4">
         <Link href="/submit">
           <Button 
-            variant="outline" 
+            variant={!session ? "ghost" : "outline"}
             disabled={!session}
-            className={!session ? 'opacity-50 cursor-not-allowed' : ''}
+            className={!session ? 'opacity-50 cursor-not-allowed' : 'card-hover'}
           >
             投稿
           </Button>
@@ -46,7 +48,7 @@ export default function Navbar() {
         
         {session?.user?.role === 'admin' && (
           <Link href="/admin">
-            <Button variant="outline">
+            <Button variant="outline" className="card-hover">
               管理后台
             </Button>
           </Link>
@@ -54,16 +56,16 @@ export default function Navbar() {
         
         {session ? (
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               {session.user?.name || session.user?.login || session.user?.email}
             </span>
-            <Button variant="ghost" onClick={() => signOut()}>
+            <Button variant="ghost" onClick={() => signOut()} className="hover:bg-destructive/10 hover:text-destructive">
               退出
             </Button>
           </div>
         ) : (
           <Link href="/auth/signin">
-            <Button>
+            <Button className="card-hover">
               登录
             </Button>
           </Link>

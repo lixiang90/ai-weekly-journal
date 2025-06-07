@@ -1,5 +1,3 @@
-import fs from "fs/promises";
-import path from "path";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Link from "next/link";
@@ -9,9 +7,26 @@ import "katex/dist/katex.min.css";
 import { notFound } from "next/navigation";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { Article } from '@/types/article';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 // 关键修改：使用动态路由类型声明
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+interface Article {
+  id: string;
+  title: string;
+  author: string;
+  content: string;
+  prompt?: string;
+  journal_id: number;
+  status: 'pending' | 'approved' | 'rejected';
+  slug: string;
+  created_at: string;
+  updated_at?: string;
+  published_at?: string;
+}
+
 export default async function ArticlePage({ params }: {
   params: Promise<{ id: string; slug: string }>
 }) {
@@ -27,35 +42,43 @@ export default async function ArticlePage({ params }: {
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user?.role === 'admin';
 
-  let article: Article | undefined;
+  let article: Article | null = null;
 
   if (isAdmin) {
-    try {
-      const articlesPath = path.join(process.cwd(), 'data', 'articles.json');
-      const articlesData = await fs.readFile(articlesPath, 'utf-8');
-      const articles = JSON.parse(articlesData);
-      article = articles.find((a: Article) => a.id === slug);
-    } catch (error) {
-      console.error('Error reading articles file:', error);
+    // 管理员可以查看所有文章，包括未批准的
+    const { data, error } = await supabaseAdmin
+      .from('articles')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      console.error('获取文章失败:', error);
+    } else {
+      article = data;
     }
   }
 
   if (!article) {
-    const filePath = path.join(process.cwd(), "data", `subjournal_${id}.json`);
-    try {
-      const file = await fs.readFile(filePath, "utf-8");
-      const parsedData = JSON.parse(file);
+    // 非管理员或管理员查询失败，只查询已批准的文章
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('journal_id', id)
+      .eq('slug', slug)
+      .eq('status', 'approved')
+      .single();
 
-      if (parsedData && typeof parsedData === "object" && Array.isArray(parsedData.articles)) {
-        article = parsedData.articles.find((a: Article) => a.id === slug);
-      }
-    } catch (error) {
-      console.error("Error reading journal file:", error);
+    if (error) {
+      console.error('获取文章失败:', error);
+      notFound();
     }
+
+    article = data;
   }
 
   if (!article) {
-    console.error("Article not found:", { id, slug });
+    console.error("文章未找到:", { id, slug });
     notFound();
   }
 
@@ -83,7 +106,7 @@ export default async function ArticlePage({ params }: {
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
         <div className="text-gray-600 mb-6">
           <p>作者：{article.author}</p>
-          <p>发布时间：{new Date(article.publishedAt || article.createdAt).toLocaleString()}</p>
+          <p>发布时间：{new Date(article.published_at || article.created_at).toLocaleString()}</p>
         </div>
 
         {article.prompt && (
