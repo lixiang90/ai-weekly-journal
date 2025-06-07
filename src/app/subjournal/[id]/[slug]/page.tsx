@@ -46,11 +46,24 @@ export default async function ArticlePage({ params }: {
 
   if (isAdmin) {
     // 管理员可以查看所有文章，包括未批准的
-    const { data, error } = await supabaseAdmin
+    // 首先尝试通过 id 查询（用于管理后台链接）
+    let { data, error } = await supabaseAdmin
       .from('articles')
       .select('*')
-      .eq('slug', slug)
+      .eq('id', slug)
       .single();
+
+    if (error) {
+      // 如果通过 id 查询失败，尝试通过 slug 查询
+      const result = await supabaseAdmin
+        .from('articles')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+      
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error('获取文章失败:', error);

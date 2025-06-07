@@ -4,6 +4,35 @@ import { Article } from '@/types/article';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user?.role !== 'admin') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // 从 URL 中提取 id
+  const url = new URL(request.url);
+  const segments = url.pathname.split('/');
+  const id = segments[segments.length - 1]; // 获取最后一个路径段作为 ID
+
+  const { data, error } = await supabaseAdmin
+    .from('articles')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!data) {
+    return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+  }
+
+  return NextResponse.json(data);
+}
+
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
   const session = await getServerSession(authOptions);
 
