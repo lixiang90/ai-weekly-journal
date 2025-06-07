@@ -78,7 +78,7 @@ export default async function SubjournalPage({
     .select('*')
     .eq('journal_id', id)
     .eq('status', 'approved')
-    .order('published_at', { ascending: false, nullsLast: true })
+    .order('published_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
     .range((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE - 1);
 
