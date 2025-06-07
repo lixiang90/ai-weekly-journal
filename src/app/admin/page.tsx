@@ -43,8 +43,22 @@ export default function AdminDashboard() {
     const res = await fetch('/api/admin/articles');
     if (res.ok) {
       const data = await res.json();
+      // 将数据库字段名映射到前端字段名
+      const mappedData = data.map((article: any) => ({
+        id: article.id,
+        title: article.title,
+        author: article.author,
+        content: article.content,
+        prompt: article.prompt,
+        journalId: article.journal_id, // 将 journal_id 映射到 journalId
+        status: article.status,
+        createdAt: article.created_at, // 将 created_at 映射到 createdAt
+        updatedAt: article.updated_at, // 将 updated_at 映射到 updatedAt
+        publishedAt: article.published_at // 将 published_at 映射到 publishedAt
+      }));
+      
       // 过滤掉已通过的文章，并按时间倒序排列
-      const filteredArticles = data
+      const filteredArticles = mappedData
         .filter((article: Article) => article.status !== 'approved')
         .sort((a: Article, b: Article) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -141,4 +155,4 @@ export default function AdminDashboard() {
       </div>
     </main>
   );
-} 
+}
