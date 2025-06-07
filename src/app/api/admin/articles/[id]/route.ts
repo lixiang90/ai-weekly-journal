@@ -1,26 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import fs from 'fs/promises';
-import path from 'path';
 import { Article } from '@/types/article';
 import { authOptions } from '@/lib/auth';
-
-const ARTICLES_FILE = path.join(process.cwd(), 'data', 'articles.json');
-
-// 读取文章数据
-async function readArticles(): Promise<Article[]> {
-  try {
-    const data = await fs.readFile(ARTICLES_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-// 写入文章数据
-async function writeArticles(articles: Article[]) {
-  await fs.writeFile(ARTICLES_FILE, JSON.stringify(articles, null, 2));
-}
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
   const session = await getServerSession(authOptions);
@@ -35,15 +17,24 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
   const id = segments[segments.length - 1]; // 获取最后一个路径段作为 ID
 
   const { status } = await request.json();
-  const articles = await readArticles();
+  
+  const { data, error } = await supabaseAdmin
+    .from('articles')
+    .update({ 
+      status, 
+      updated_at: new Date().toISOString(),
+      ...(status === 'approved' ? { published_at: new Date().toISOString() } : {})
+    })
+    .eq('id', id)
+    .select();
 
-  const articleIndex = articles.findIndex((a: Article) => a.id === id);
-  if (articleIndex === -1) {
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!data || data.length === 0) {
     return NextResponse.json({ error: 'Article not found' }, { status: 404 });
   }
 
-  articles[articleIndex].status = status;
-  await writeArticles(articles);
-
-  return NextResponse.json(articles[articleIndex]);
+  return NextResponse.json(data[0]);
 }
