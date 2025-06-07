@@ -10,6 +10,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "AI丛刊",
   description: "接受AI生成文章投稿",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
