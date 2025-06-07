@@ -47,7 +47,8 @@ export default function SubmitPage() {
                   journalId: parseInt((form.journalId as HTMLSelectElement).value),
                 };
 
-                const res = await fetch("/api/admin/articles", {
+                // 修改API路径，使用普通用户API而不是管理员API
+                const res = await fetch("/api/articles", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(data),
@@ -57,7 +58,8 @@ export default function SubmitPage() {
                   alert("投稿成功！请等待管理员审核。");
                   router.push('/');
                 } else {
-                  alert("投稿失败");
+                  const errorText = await res.text();
+                  alert(`投稿失败: ${errorText}`);
                 }
               }}
             >
@@ -83,4 +85,4 @@ export default function SubmitPage() {
       </div>
     </main>
   );
-} 
+}

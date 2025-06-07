@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 function slugify(title: string) {
   return encodeURIComponent(title.trim().replace(/\s+/g, '-').slice(0, 100));
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   // 准备文章数据
   const articleData = {
-    id: crypto.randomUUID(), // 生成唯一ID
+    id: uuidv4(), // 生成唯一ID
     title,
     author,
     content,
