@@ -47,6 +47,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
 
   const { status, title, author, content, prompt, journalId } = await request.json();
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateData: any = { 
     updated_at: new Date().toISOString()
   };

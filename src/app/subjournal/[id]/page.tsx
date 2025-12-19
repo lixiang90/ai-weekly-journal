@@ -5,20 +5,6 @@ import { supabase } from '@/lib/supabase';
 const subjournals = ["文史哲", "社科", "理科", "数学"];
 const POSTS_PER_PAGE = 5;
 
-interface Article {
-  id: string;
-  title: string;
-  author: string;
-  content: string;
-  prompt?: string;
-  journal_id: number;
-  status: 'pending' | 'approved' | 'rejected';
-  slug: string;
-  created_at: string;
-  updated_at?: string;
-  published_at?: string;
-}
-
 // 关键修改：添加动态路由配置
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

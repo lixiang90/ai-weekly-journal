@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { v4 as uuidv4 } from 'uuid';
 import { authOptions } from '@/lib/auth';
-import { Article } from '@/types/article';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // 获取所有文章

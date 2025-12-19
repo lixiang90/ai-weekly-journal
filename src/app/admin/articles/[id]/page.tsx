@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,13 +33,7 @@ export default function EditArticlePage() {
     }
   }, [status, session, router]);
 
-  useEffect(() => {
-    if (session?.user?.role === 'admin' && id) {
-      fetchArticle();
-    }
-  }, [session, id]);
-
-  const fetchArticle = async () => {
+  const fetchArticle = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/articles/${id}`);
       if (res.ok) {
@@ -60,7 +54,13 @@ export default function EditArticlePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (session?.user?.role === 'admin' && id) {
+      fetchArticle();
+    }
+  }, [session, id, fetchArticle]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -108,11 +108,21 @@ export default async function ArticlePage({ params }: {
         >
           ← 返回{isAdmin ? '管理后台' : '子刊列表'}
         </Link>
-        {isAdmin && article.status !== 'approved' && (
-          <div className="text-sm text-gray-600">
-            状态: {article.status === 'pending' ? '待审核' : '已拒绝'}
-          </div>
-        )}
+        <div className="flex items-center gap-4">
+          {isAdmin && (
+            <Link
+              href={`/admin/articles/${article.id}`}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+            >
+              编辑文章
+            </Link>
+          )}
+          {isAdmin && article.status !== 'approved' && (
+            <div className="text-sm text-gray-600">
+              状态: {article.status === 'pending' ? '待审核' : '已拒绝'}
+            </div>
+          )}
+        </div>
       </div>
 
       <article className="bg-white rounded-xl shadow-sm p-6">

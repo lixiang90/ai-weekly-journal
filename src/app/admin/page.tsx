@@ -44,6 +44,7 @@ export default function AdminDashboard() {
     if (res.ok) {
       const data = await res.json();
       // 将数据库字段名映射到前端字段名
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mappedData = data.map((article: any) => ({
         id: article.id,
         title: article.title,
