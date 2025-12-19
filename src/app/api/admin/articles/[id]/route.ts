@@ -45,15 +45,26 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
   const segments = url.pathname.split('/');
   const id = segments[segments.length - 1]; // 获取最后一个路径段作为 ID
 
-  const { status } = await request.json();
+  const { status, title, author, content, prompt, journalId } = await request.json();
   
+  const updateData: any = { 
+    updated_at: new Date().toISOString()
+  };
+
+  if (status !== undefined) updateData.status = status;
+  if (title !== undefined) updateData.title = title;
+  if (author !== undefined) updateData.author = author;
+  if (content !== undefined) updateData.content = content;
+  if (prompt !== undefined) updateData.prompt = prompt;
+  if (journalId !== undefined) updateData.journal_id = journalId;
+
+  if (status === 'approved') {
+    updateData.published_at = new Date().toISOString();
+  }
+
   const { data, error } = await supabaseAdmin
     .from('articles')
-    .update({ 
-      status, 
-      updated_at: new Date().toISOString(),
-      ...(status === 'approved' ? { published_at: new Date().toISOString() } : {})
-    })
+    .update(updateData)
     .eq('id', id)
     .select();
 

@@ -115,6 +115,12 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex gap-2">
                       <Button
+                        variant="outline"
+                        onClick={() => router.push(`/admin/articles/${article.id}`)}
+                      >
+                        编辑
+                      </Button>
+                      <Button
                         onClick={() => handleArticleStatus(article.id, 'approved')}
                         className="bg-green-600 hover:bg-green-700"
                       >
