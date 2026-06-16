@@ -7,7 +7,7 @@ import "katex/dist/katex.min.css";
 import { notFound } from "next/navigation";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 // 关键修改：使用动态路由类型声明
 export const dynamic = 'force-dynamic';
@@ -74,7 +74,7 @@ export default async function ArticlePage({ params }: {
 
   if (!article) {
     // 非管理员或管理员查询失败，只查询已批准的文章
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('articles')
       .select('*')
       .eq('journal_id', id)
@@ -155,5 +155,4 @@ export default async function ArticlePage({ params }: {
     </main>
   );
 }
-
 

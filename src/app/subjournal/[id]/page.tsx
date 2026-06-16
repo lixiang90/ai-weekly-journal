@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from "next/navigation";
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const subjournals = ["文史哲", "社科", "理科", "数学"];
 const POSTS_PER_PAGE = 5;
@@ -28,7 +28,7 @@ export default async function SubjournalPage({
   const journalTitle = subjournals[id] || '未知子刊';
 
   // 从Supabase获取子刊信息
-  const { data: journal, error: journalError } = await supabase
+  const { data: journal, error: journalError } = await supabaseAdmin
     .from('journals')
     .select('*')
     .eq('id', id)
@@ -40,7 +40,7 @@ export default async function SubjournalPage({
   }
 
   // 获取文章总数
-  const { count: totalArticles, error: countError } = await supabase
+  const { count: totalArticles, error: countError } = await supabaseAdmin
     .from('articles')
     .select('*', { count: 'exact', head: true })
     .eq('journal_id', id)
@@ -59,7 +59,7 @@ export default async function SubjournalPage({
   }
 
   // 获取分页文章
-  const { data: articles, error: articlesError } = await supabase
+  const { data: articles, error: articlesError } = await supabaseAdmin
     .from('articles')
     .select('*')
     .eq('journal_id', id)
@@ -150,6 +150,5 @@ export default async function SubjournalPage({
     </main>
   );
 }
-
 
 
