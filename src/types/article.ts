@@ -13,4 +13,15 @@ export interface Article {
 
 export interface Journal {
   articles: Article[];
-} 
+}
+
+export interface Comment {
+  id: string;
+  articleId: string;
+  authorName: string;
+  authorImage?: string;
+  authorLogin: string;
+  content: string;
+  createdAt: string;
+  updatedAt?: string;
+}

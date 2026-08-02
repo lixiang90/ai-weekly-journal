@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import CommentSection from '@/components/CommentSection';
 
 // 关键修改：使用动态路由类型声明
 export const dynamic = 'force-dynamic';
@@ -152,6 +153,10 @@ export default async function ArticlePage({ params }: {
           </ReactMarkdown>
         </div>
       </article>
+
+      {article.status === 'approved' && (
+        <CommentSection articleId={article.id} />
+      )}
     </main>
   );
 }

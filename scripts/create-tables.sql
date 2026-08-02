@@ -28,6 +28,22 @@ CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
 CREATE INDEX IF NOT EXISTS idx_articles_slug ON articles(slug);
 CREATE INDEX IF NOT EXISTS idx_articles_published_at ON articles(published_at);
 
+-- 创建评论表
+CREATE TABLE IF NOT EXISTS comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  author_name TEXT NOT NULL,
+  author_image TEXT,
+  author_login TEXT NOT NULL,
+  content TEXT NOT NULL CHECK (char_length(content) <= 2000),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 创建评论索引
+CREATE INDEX IF NOT EXISTS idx_comments_article_id ON comments(article_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments(created_at);
+
 -- 初始化子刊数据
 INSERT INTO journals (id, name) VALUES 
   (0, '文史哲'),
@@ -47,3 +63,18 @@ CREATE POLICY articles_public_read ON articles FOR SELECT USING (status = 'appro
 -- 创建管理员访问策略（如果需要）
 -- 注意：这需要在Supabase中设置适当的角色和权限
 -- CREATE POLICY articles_admin_all ON articles FOR ALL USING (auth.role() = 'admin');
+
+-- 评论表行级安全策略
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+
+-- 所有人都可以读取已发布文章的评论
+CREATE POLICY comments_public_read ON comments FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM articles
+    WHERE articles.id = comments.article_id
+      AND articles.status = 'approved'
+  )
+);
+
+-- 注意：评论的写入通过 NextAuth.js 会话在 API 路由中校验，
+-- API 使用 service_role 密钥绕过 RLS，因此不开放客户端直接 INSERT/DELETE。
