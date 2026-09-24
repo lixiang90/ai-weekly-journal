@@ -51,7 +51,7 @@ function SignInContent() {
               {errorMessage && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded relative" role="alert">
                   <span className="block sm:inline">{errorMessage}</span>
-                  <span className="block text-xs text-red-400 mt-1">错误代码：{error}</span>
+                  <span className="block mt-1 text-xs text-red-400 break-all">错误代码：{error}</span>
                 </div>
               )}
               

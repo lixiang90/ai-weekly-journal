@@ -58,8 +58,16 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  // 只在本地开发时输出调试日志，生产环境仍会打印错误
-  debug: process.env.NODE_ENV === 'development',
+  pages: {
+    // 登录失败时（例如 GitHub OAuth 回调被拒）跳转到站内 /auth/signin，
+    // 该页面会读取 ?error= 显示中文原因；否则 next-auth 会跳到它自带的英文
+    // 错误页，站内那套错误提示根本不会被看到。
+    signIn: '/auth/signin',
+    error: '/auth/signin',
+  },
+  // 只在本地开发时输出调试日志（含 OAuth 回调数据），生产环境仍会打印错误。
+  // 线上需要排查时，可临时设置 NEXTAUTH_DEBUG=true。
+  debug: process.env.NODE_ENV === 'development' || process.env.NEXTAUTH_DEBUG === 'true',
   session: {
     strategy: "jwt",
   },
