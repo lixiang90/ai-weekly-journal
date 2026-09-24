@@ -50,6 +50,36 @@ npm run dev
    - 设置回调 URL 为你的 Vercel 域名
    - 更新 Vercel 环境变量中的 GITHUB_ID 和 GITHUB_SECRET
 
+## 登录故障排查
+
+### GitHub 登录报 `issuer must be configured on the issuer`（RFC 9207）
+
+GitHub 从 2026 年 4 月起在 OAuth 授权回调里返回 RFC 9207 的 `iss` 参数
+（值为 `https://github.com/login/oauth`）。next-auth v4 内部的 openid-client
+只要看到 `iss`，就会和 provider 的 `issuer` 做严格比较；旧版本的 GitHub provider
+没有配置 `issuer`，于是所有登录都会失败：
+
+```
+[next-auth][error][OAUTH_CALLBACK_ERROR] issuer must be configured on the issuer
+```
+
+本项目的处理方式：
+
+- 依赖升级到 `next-auth@^4.24.15`（该版本的 GitHub provider 自带正确的 issuer）；
+- `src/lib/auth.ts` 里保留了兜底逻辑：如果 provider 自身没有 issuer，就补上
+  `https://github.com/login/oauth`，避免被锁到旧版本时再次挂掉。
+
+可以随时用下面的命令验证（不联网，直接跑 openid-client 的校验逻辑）：
+
+```bash
+npm run check:auth
+```
+
+> 注意：`next-auth@4.24.13` 起，`NEXTAUTH_URL` 的优先级高于 Vercel 自动探测的域名。
+> 如果在 Vercel 上设置了 `NEXTAUTH_URL`，请确认它就是线上正式域名，并且和 GitHub
+> OAuth App 的回调地址（`<域名>/api/auth/callback/github`）一致；预览部署若想各自
+> 使用自己的域名，则不要设置该变量。
+
 ## 技术栈
 
 - Next.js 15
